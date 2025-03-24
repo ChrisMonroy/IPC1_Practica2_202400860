@@ -38,27 +38,33 @@ public class Datos {
     } 
     
     public void LeerArchivos(String ruta) {
-        try(BufferedReader lector  = new BufferedReader(new FileReader(ruta))){
-            String fila;
-            int contador = 0;
-            String encabezado = lector.readLine();
-            System.out.println(encabezado);
-            while ((fila = lector.readLine()) != null){
-                //valor1,valor -> [valor1, valor2]
-                String [] datos = fila.split(",");
-               if (datos.length < 2){
-                    continue;
-                } 
-                String nombreJuego = datos[0];
-                int cantidad = Integer.parseInt(datos[1]);
-                System.out.println("juego: " + nombreJuego + " Cantidad: "+ cantidad);
-                contador++;
+    try (BufferedReader lector = new BufferedReader(new FileReader(ruta))) {
+        String fila;
+        int contador = 0;
+        String encabezado = lector.readLine(); // Leer la primera línea (encabezado)
+        System.out.println(encabezado);
+
+        while ((fila = lector.readLine()) != null) {
+            // Dividir la línea en partes usando la coma como separador
+            String[] datos = fila.split(",");
+
+            if (datos.length < 2) {
+                continue; // Si no hay suficientes datos, continuar con la siguiente línea
             }
-            System.out.println("Todos los juegos leidos: "+contador);
-        }catch(IOException e){
-            System.out.println("Error al leer el archivo");
+
+            String nombreJuego = datos[0];
+            int cantidad = Integer.parseInt(datos[1]);
+
+            System.out.println("Juego: " + nombreJuego + " Cantidad: " + cantidad);
+            contador++;
         }
+
+        System.out.println("Todos los juegos leidos: " + contador);
+    } catch (IOException e) {
+        System.out.println("Error al leer el archivo");
+        e.printStackTrace();
     }
+}
     
     public void ordenarBurbuja(boolean cambio) {
         for (int i = 0; i < conteo.length - 1; i++) {
@@ -239,6 +245,23 @@ public class Datos {
                 conteo[j] = temp;
                 categoria[j] = tempCategoria;
             }
+        }
+    }
+    private static void pausar(String velocidad) {
+        try {
+            switch (velocidad) {
+                case "Baja":
+                    Thread.sleep(1000);  // 500 ms de pausa
+                    break;
+                case "Media":
+                    Thread.sleep(500);  // 250 ms de pausa
+                    break;
+                case "Alta":
+                    Thread.sleep(100);  // 100 ms de pausa
+                    break;
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

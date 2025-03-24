@@ -4,6 +4,10 @@
  */
 package practica2;
 
+import Controller.Controlador;
+import Model.Datos;
+import View.View;
+
 /**
  *
  * @author Christopher
@@ -14,8 +18,15 @@ public class Practica2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
-        System.out.println("Practica 2");
+        
+       Datos modelo = new Datos(new String[]{}, new int[]{});
+
+        View vista = new View();
+
+        Controlador controlador = new Controlador(modelo, vista);
+
+
+        vista.setVisible(true);
     }
     
 }
