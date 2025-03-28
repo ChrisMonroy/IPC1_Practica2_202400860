@@ -4,16 +4,32 @@
  */
 package View;
 
-import Controller.Controlador;
+
 import Model.Datos;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import View.GenerarGrafica;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+
 
 
 /**
@@ -21,85 +37,163 @@ import View.GenerarGrafica;
  * @author Christopher
  */
 public class View extends javax.swing.JFrame {
+    private JTextField txtArchivo;
+    public JButton btnBuscar;
+    public JButton btnOrdenar;
+    private JButton btnGenerarPDF;
+    private JComboBox<String> cbAlgoritmo, cbVelocidad, cbDireccion;
+    private JLabel lblAlgoritmo, lblVelocidad, lblDireccion, lblEstado;
+    private JLabel lblPasos, lblComparaciones, lblIntercambios, lblTiempo;
+    private JProgressBar progressBar;
+    private ChartPanel chartPanel;
+    private DefaultCategoryDataset dataset;
 
-    /**
-     * Creates new form View
-     */
     public View() {
-        initComponents();
-        add(jButton1);
-        add(jButton2);
-        add(jComboBox1);
-        add(jComboBox2);
-        add(jComboBox3);
-        add(jTextField1);
-        add(jPanel1);
-        
-        jButton1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                int returnValue = fileChooser.showOpenDialog(null);
-                if (returnValue == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    jTextField1.setText(selectedFile.getAbsolutePath());
-                }
-            }
-        });
-        
-        jButton2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                 String ruta = jTextField1.getText(); // Ruta del archivo
-        String algoritmo = (String) jComboBox1.getSelectedItem(); // Algoritmo seleccionado
-        String orden = (String) jComboBox2.getSelectedItem(); // Orden (Ascendente o Descendente)
-        String velocidad = (String) jComboBox3.getSelectedItem(); // Velocidad
-
-        // Verificar que la ruta del archivo no esté vacía
-        if (ruta.isEmpty()) {
-            mostrarError("Por favor, selecciona un archivo.");
-            return;
-        }
-
-        // Llamar al controlador para procesar el archivo y ordenar los datos
-        Controlador controlador = new Controlador(new Datos(new String[]{}, new int[]{}), View.this);
-        controlador.procesarArchivo(ruta, algoritmo, orden.equals("Ascendente"), velocidad);
+        setTitle("USAC - Ordenamiento de Datos");
+        setSize(1000, 700);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        initComponent();
     }
-});
+
+    private void initComponent() {
+        // Panel superior
+        JPanel pnlSuperior = new JPanel(new GridLayout(3, 1));
+
+        // Panel de búsqueda
+        JPanel pnlBusqueda = new JPanel();
+        txtArchivo = new JTextField(30);
+        btnBuscar = new JButton("Buscar Archivo .ipcd1");
+        pnlBusqueda.add(new JLabel("Archivo:"));
+        pnlBusqueda.add(txtArchivo);
+        pnlBusqueda.add(btnBuscar);
+
+        // Panel de configuración
+        JPanel pnlConfig = new JPanel();
+        cbAlgoritmo = new JComboBox<>(new String[]{"Burbuja", "Inserción", "Selección", "QuickSort", "MergeSort", "ShellSort"});
+        cbDireccion = new JComboBox<>(new String[]{"Ascendente", "Descendente"});
+        cbVelocidad = new JComboBox<>(new String[]{"Alta", "Media", "Baja"});
+        btnOrdenar = new JButton("Ordenar Datos");
+        btnGenerarPDF = new JButton("Generar PDF");
+        btnGenerarPDF.setEnabled(false);
         
+        pnlConfig.add(new JLabel("Algoritmo:"));
+        pnlConfig.add(cbAlgoritmo);
+        pnlConfig.add(new JLabel("Dirección:"));
+        pnlConfig.add(cbDireccion);
+        pnlConfig.add(new JLabel("Velocidad:"));
+        pnlConfig.add(cbVelocidad);
+        pnlConfig.add(btnOrdenar);
+        pnlConfig.add(btnGenerarPDF);
+
+        // Panel de información
+        JPanel pnlInfo = new JPanel(new GridLayout(2, 4));
+        lblAlgoritmo = new JLabel("Algoritmo: -");
+        lblVelocidad = new JLabel("Velocidad: -");
+        lblDireccion = new JLabel("Dirección: -");
+        lblEstado = new JLabel("Estado: Esperando...");
+        lblPasos = new JLabel("Pasos: 0");
+        lblComparaciones = new JLabel("Comparaciones: 0");
+        lblIntercambios = new JLabel("Intercambios: 0");
+        lblTiempo = new JLabel("Tiempo: 00:00:000");
+        progressBar = new JProgressBar();
+        progressBar.setStringPainted(true);
+
+        pnlInfo.add(lblAlgoritmo);
+        pnlInfo.add(lblVelocidad);
+        pnlInfo.add(lblDireccion);
+        pnlInfo.add(lblEstado);
+        pnlInfo.add(lblPasos);
+        pnlInfo.add(lblComparaciones);
+        pnlInfo.add(lblIntercambios);
+        pnlInfo.add(lblTiempo);
+
+        pnlSuperior.add(pnlBusqueda);
+        pnlSuperior.add(pnlConfig);
+        pnlSuperior.add(pnlInfo);
+
+        // Panel central con gráfica
+        dataset = new DefaultCategoryDataset();
+        JFreeChart chart = ChartFactory.createBarChart(
+            "Datos", "Categoría", "Valor", dataset,
+            PlotOrientation.VERTICAL, true, true, false
+        );
+        chartPanel = new ChartPanel(chart);
+        JPanel pnlGrafica = new JPanel(new BorderLayout());
+        pnlGrafica.add(chartPanel, BorderLayout.CENTER);
+
+        // Configuración principal
+        setLayout(new BorderLayout());
+        add(pnlSuperior, BorderLayout.NORTH);
+        add(pnlGrafica, BorderLayout.CENTER);
+        add(progressBar, BorderLayout.SOUTH);
     }
-     public void mostrarResultados(String[] categorias, int[] conteos) {
-        StringBuilder resultado = new StringBuilder();
+
+    public void mostrarDatos(String[] categorias, int[] valores) {
+        dataset.clear();
         for (int i = 0; i < categorias.length; i++) {
-            resultado.append(categorias[i]).append(": ").append(conteos[i]).append("\n");
+            dataset.addValue(valores[i], "Valor", categorias[i]);
         }
-        jTextField1.setText(resultado.toString());
     }
 
-    public void mostrarGrafica(String[] categorias, int[] conteos, String titulo) {
-        JPanel graficaPanel = GenerarGrafica.generarGraficaBarras(categorias, conteos, titulo);
-        jPanel1.removeAll();
-        jPanel1.add(graficaPanel);
-        jPanel1.revalidate();
-        jPanel1.repaint();
-    }
+    public void actualizarProceso(String algoritmo, String velocidad, String direccion,
+                                int pasos, int comparaciones, int intercambios,
+                                long tiempo, int idx1, int idx2, String accion) {
+        SwingUtilities.invokeLater(() -> {
+            lblAlgoritmo.setText("Algoritmo: " + algoritmo);
+            lblVelocidad.setText("Velocidad: " + velocidad);
+            lblDireccion.setText("Dirección: " + direccion);
+            lblEstado.setText("Estado: " + accion);
+            lblPasos.setText("Pasos: " + pasos);
+            lblComparaciones.setText("Comparaciones: " + comparaciones);
+            lblIntercambios.setText("Intercambios: " + intercambios);
+            lblTiempo.setText("Tiempo: " + formatTime(tiempo));
 
-    public void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
-    }
+            // Actualizar progreso
+            int totalEstimado = (int) Math.pow(dataset.getRowCount(), 2);
+            int progreso = (int) ((double) pasos / totalEstimado * 100);
+            progressBar.setValue(Math.min(progreso, 100));
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new View();
+            // Resaltar elementos
+            BarRenderer renderer = (BarRenderer) chartPanel.getChart().getCategoryPlot().getRenderer();
+            for (int i = 0; i < dataset.getRowCount(); i++) {
+                renderer.setSeriesPaint(i, (i == idx1 || i == idx2) ? Color.RED : new Color(70, 130, 180));
+            }
+
+            // Habilitar PDF al finalizar
+            if (accion.equals("Finalizado")) {
+                btnGenerarPDF.setEnabled(true);
             }
         });
     }
 
+    private String formatTime(long millis) {
+        long minutes = (millis / 1000) / 60;
+        long seconds = (millis / 1000) % 60;
+        long milliseconds = millis % 1000;
+        return String.format("%02d:%02d:%03d", minutes, seconds, milliseconds);
+    }
 
-
-    /**
+    // Getters
+    public String getRutaArchivo() { return txtArchivo.getText(); }
+    public JTextField getRutaArchivoField() { return txtArchivo; }
+    public String getAlgoritmo() { return (String) cbAlgoritmo.getSelectedItem(); }
+    public String getVelocidad() { return (String) cbVelocidad.getSelectedItem(); }
+    public boolean isAscendente() { return cbDireccion.getSelectedIndex() == 0; }
+    public JFreeChart getChart() { return chartPanel.getChart(); }
+    
+    // Setters para listeners
+    public void setBuscarListener(ActionListener listener) { btnBuscar.addActionListener(listener); }
+    public void setOrdenarListener(ActionListener listener) { btnOrdenar.addActionListener(listener); }
+    public void setGenerarPDFListener(ActionListener listener) { btnGenerarPDF.addActionListener(listener); }
+    
+    // Métodos de mensajes
+    public void mostrarError(String mensaje) { 
+        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE); 
+    }
+    public void mostrarExito(String mensaje) { 
+        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE); 
+    }
+/*
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
@@ -206,5 +300,6 @@ public class View extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
+
 
 }

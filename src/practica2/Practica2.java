@@ -7,6 +7,7 @@ package practica2;
 import Controller.Controlador;
 import Model.Datos;
 import View.View;
+import javax.swing.UIManager;
 
 /**
  *
@@ -19,14 +20,9 @@ public class Practica2 {
      */
     public static void main(String[] args) {
         
-       Datos modelo = new Datos(new String[]{}, new int[]{});
-
+        Datos modelo = new Datos();
         View vista = new View();
-
         Controlador controlador = new Controlador(modelo, vista);
-
-
         vista.setVisible(true);
     }
-    
 }
