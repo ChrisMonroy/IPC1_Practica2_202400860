@@ -10,17 +10,13 @@ package Controller;
  */
 import Model.Datos;
 import View.View;
-import com.itextpdf.text.DocumentException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 import practica2.PDFGenerator;
 
 
@@ -39,21 +35,31 @@ public class Controlador {
         vista.setBuscarListener(new BuscarListener());
         vista.setOrdenarListener(new OrdenarListener());
         vista.setGenerarPDFListener(new GenerarPDFListener());
+    
         
-        modelo.setOrdenarListener((datos, paso, comp, interc, tiempo, idx1, idx2, accion) -> {
-            vista.actualizarProceso(
-                vista.getAlgoritmo(),
-                vista.getVelocidad(),
-                vista.isAscendente() ? "Ascendente" : "Descendente",
-                paso,
-                comp,
-                interc,
-                tiempo,
-                idx1,
-                idx2,
-                accion
-            );
-        });
+        modelo.setListener(new Datos.OrdenamientoListener() {
+    @Override
+    public void onPasoEjecutado(int[] datosActuales, int pasoActual, long tiempoTranscurrido,
+            int indice1, int indice2, String accion) {
+        
+        // Actualizar la vista con los datos del paso actual
+        vista.actualizarProceso(
+            vista.getAlgoritmo(),
+            vista.getVelocidad(),
+            vista.isAscendente() ? "Ascendente" : "Descendente",
+            pasoActual,
+            modelo.getComparaciones(),
+            modelo.getIntercambios(),
+            tiempoTranscurrido,
+            indice1,
+            indice2,
+            accion
+        );
+        
+        // Forzar la actualización de la gráfica con los datos ordenados
+        vista.mostrarDatos(modelo.getCategoria(), modelo.getConteo());
+    }
+});
     }
 
     class BuscarListener implements ActionListener {
@@ -92,7 +98,7 @@ public class Controlador {
                     boolean ascendente = vista.isAscendente();
 
                     modelo.setVelocidad(velocidad);
-                    vista.btnGenerarPDF.setEnabled(false);
+                    vista.btnGenerarPDF.setEnabled(true);
 
                     switch (algoritmo) {
                         case "Burbuja": modelo.ordenarBurbuja(ascendente); break;
@@ -116,21 +122,35 @@ public class Controlador {
         public void actionPerformed(ActionEvent e) {
             try {
                 JFreeChart chart = vista.getChart();
-                
-                PDFGenerator.generarReporte(
-                    modelo,
-                    vista.getAlgoritmo(),
-                    vista.getVelocidad(),
-                    vista.isAscendente() ? "Ascendente" : "Descendente",
-                    chart,
-                    "Tu Nombre",  // Cambiar por tu nombre
-                    "202500000"   // Cambiar por tu carné
-                );
-                
-                vista.mostrarExito("Reporte PDF generado exitosamente");
-            } catch (Exception ex) {
-                vista.mostrarError("Error al generar PDF: " + ex.getMessage());
+            // Crear una copia de la gráfica desordenada usando los datos originales
+            DefaultCategoryDataset datasetDesordenado = new DefaultCategoryDataset();
+            String[] categoriasOriginales = modelo.getCategoriaOriginal();
+            int[] conteoOriginal = modelo.getConteoOriginal();
+            for (int i = 0; i < categoriasOriginales.length; i++) {
+                datasetDesordenado.addValue(conteoOriginal[i], "Valor", categoriasOriginales[i]);
             }
+            JFreeChart chartDesordenado = ChartFactory.createBarChart(
+                "Datos Desordenados", 
+                modelo.getEjeX(), 
+                modelo.getEjeY(), 
+                datasetDesordenado,
+                PlotOrientation.VERTICAL, true, true, false
+            );
+
+            PDFGenerator.generarReporte(
+                modelo,
+                vista.getAlgoritmo(),
+                vista.getVelocidad(),
+                vista.isAscendente() ? "Ascendente" : "Descendente",
+                chart,
+                chartDesordenado,
+                "Christopher Monroy",
+                "202400860"
+            );
+            vista.mostrarExito("Reporte PDF generado exitosamente");
+        } catch (Exception ex) {
+            vista.mostrarError("Error al generar PDF: " + ex.getMessage());
         }
     }
+}
 }

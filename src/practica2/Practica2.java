@@ -7,7 +7,6 @@ package practica2;
 import Controller.Controlador;
 import Model.Datos;
 import View.View;
-import javax.swing.UIManager;
 
 /**
  *

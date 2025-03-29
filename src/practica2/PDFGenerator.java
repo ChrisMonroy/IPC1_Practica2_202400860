@@ -29,7 +29,7 @@ public class PDFGenerator {
     private static final Font TABLE_HEADER_FONT = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE);
 
     public static void generarReporte(Datos modelo, String algoritmo, String velocidad, 
-                                   String direccion, JFreeChart chart, 
+                                   String direccion, JFreeChart chart, JFreeChart chartDesordenado,
                                    String nombreEstudiante, String carnet) throws DocumentException {
         Document document = new Document(PageSize.A4.rotate());
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -52,8 +52,11 @@ public class PDFGenerator {
             // 4. Datos originales
             document.newPage();
             agregarDatosOriginales(document, modelo);
+         document.newPage();
+        agregarGrafica(document, chartDesordenado, "Gráfica de Datos Desordenados");
 
             // 5. Gráfica
+            document.newPage();
             agregarGrafica(document, chart, "Gráfica de Datos Ordenados");
 
             document.close();

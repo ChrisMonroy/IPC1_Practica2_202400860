@@ -4,30 +4,21 @@
  */
 package View;
 
-
-import Model.Datos;
 import java.awt.event.ActionListener;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 
@@ -37,10 +28,10 @@ import org.jfree.data.category.DefaultCategoryDataset;
  * @author Christopher
  */
 public class View extends javax.swing.JFrame {
-    private JTextField txtArchivo;
+     private JTextField txtArchivo;
     public JButton btnBuscar;
     public JButton btnOrdenar;
-    private JButton btnGenerarPDF;
+    public JButton btnGenerarPDF;
     private JComboBox<String> cbAlgoritmo, cbVelocidad, cbDireccion;
     private JLabel lblAlgoritmo, lblVelocidad, lblDireccion, lblEstado;
     private JLabel lblPasos, lblComparaciones, lblIntercambios, lblTiempo;
@@ -74,8 +65,8 @@ public class View extends javax.swing.JFrame {
         cbVelocidad = new JComboBox<>(new String[]{"Alta", "Media", "Baja"});
         btnOrdenar = new JButton("Ordenar Datos");
         btnGenerarPDF = new JButton("Generar PDF");
-        btnGenerarPDF.setEnabled(false);
-        
+        btnGenerarPDF.setEnabled(true);
+
         pnlConfig.add(new JLabel("Algoritmo:"));
         pnlConfig.add(cbAlgoritmo);
         pnlConfig.add(new JLabel("Dirección:"));
@@ -136,8 +127,9 @@ public class View extends javax.swing.JFrame {
     }
 
     public void actualizarProceso(String algoritmo, String velocidad, String direccion,
-                                int pasos, int comparaciones, int intercambios,
-                                long tiempo, int idx1, int idx2, String accion) {
+            int pasos, int comparaciones, int intercambios,
+            long tiempo, int idx1, int idx2, String accion) {
+        
         SwingUtilities.invokeLater(() -> {
             lblAlgoritmo.setText("Algoritmo: " + algoritmo);
             lblVelocidad.setText("Velocidad: " + velocidad);
@@ -153,16 +145,6 @@ public class View extends javax.swing.JFrame {
             int progreso = (int) ((double) pasos / totalEstimado * 100);
             progressBar.setValue(Math.min(progreso, 100));
 
-            // Resaltar elementos
-            BarRenderer renderer = (BarRenderer) chartPanel.getChart().getCategoryPlot().getRenderer();
-            for (int i = 0; i < dataset.getRowCount(); i++) {
-                renderer.setSeriesPaint(i, (i == idx1 || i == idx2) ? Color.RED : new Color(70, 130, 180));
-            }
-
-            // Habilitar PDF al finalizar
-            if (accion.equals("Finalizado")) {
-                btnGenerarPDF.setEnabled(true);
-            }
         });
     }
 
@@ -180,18 +162,19 @@ public class View extends javax.swing.JFrame {
     public String getVelocidad() { return (String) cbVelocidad.getSelectedItem(); }
     public boolean isAscendente() { return cbDireccion.getSelectedIndex() == 0; }
     public JFreeChart getChart() { return chartPanel.getChart(); }
-    
+
     // Setters para listeners
     public void setBuscarListener(ActionListener listener) { btnBuscar.addActionListener(listener); }
     public void setOrdenarListener(ActionListener listener) { btnOrdenar.addActionListener(listener); }
     public void setGenerarPDFListener(ActionListener listener) { btnGenerarPDF.addActionListener(listener); }
-    
+
     // Métodos de mensajes
-    public void mostrarError(String mensaje) { 
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE); 
+    public void mostrarError(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }
-    public void mostrarExito(String mensaje) { 
-        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE); 
+
+    public void mostrarExito(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
     }
 /*
      * This method is called from within the constructor to initialize the form.

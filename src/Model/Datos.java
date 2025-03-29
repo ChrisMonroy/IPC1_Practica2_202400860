@@ -8,8 +8,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  *
@@ -26,10 +24,12 @@ public class Datos {
     private String ejeY;
     private long tiempoInicio;
     private OrdenamientoListener listener;
+    private int comparaciones;
+    private int intercambios;
     
     public interface OrdenamientoListener {
-        void onPasoEjecutado(int[] datosActuales, int pasoActual, long tiempoTranscurrido, 
-                           int indice1, int indice2, String accion);
+        void onPasoEjecutado(int[] datosActuales, int pasoActual, long tiempoTranscurrido,
+                int indice1, int indice2, String accion);
     }
     
     public void setListener(OrdenamientoListener listener) {
@@ -109,25 +109,32 @@ public class Datos {
     // Algoritmos de ordenamiento
     public void ordenarBurbuja(boolean ascendente) {
         pasos = 0;
+        comparaciones = 0;
+        intercambios = 0;
         tiempoInicio = System.currentTimeMillis();
         for (int i = 0; i < conteo.length - 1; i++) {
             for (int j = 0; j < conteo.length - i - 1; j++) {
                 if ((ascendente && conteo[j] > conteo[j + 1]) || (!ascendente && conteo[j] < conteo[j + 1])) {
                     intercambiar(j, j + 1);
                     notificarPaso(j, j + 1, "Intercambio");
-                }
+                } else {
+                    notificarPaso(j, j + 1, "Comparación");
             }
         }
     }
+}
 
     public void ordenarInsercion(boolean ascendente) {
         pasos = 0;
+        comparaciones = 0;
+        intercambios = 0;
         tiempoInicio = System.currentTimeMillis();
         for (int i = 1; i < conteo.length; i++) {
             int key = conteo[i];
             String keyCat = categoria[i];
             int j = i - 1;
             while (j >= 0 && ((ascendente && conteo[j] > key) || (!ascendente && conteo[j] < key))) {
+                comparaciones++;
                 conteo[j + 1] = conteo[j];
                 categoria[j + 1] = categoria[j];
                 j--;
@@ -141,6 +148,8 @@ public class Datos {
 
     public void ordenarSeleccion(boolean ascendente) {
         pasos = 0;
+        comparaciones = 0;
+        intercambios = 0;
         tiempoInicio = System.currentTimeMillis();
         for (int i = 0; i < conteo.length - 1; i++) {
             int extremo = i;
@@ -328,6 +337,22 @@ public class Datos {
 
     public void setTiempoInicio(long tiempoInicio) {
         this.tiempoInicio = tiempoInicio;
+    }
+
+    public int getComparaciones() {
+        return comparaciones;
+    }
+
+    public void setComparaciones(int comparaciones) {
+        this.comparaciones = comparaciones;
+    }
+
+    public int getIntercambios() {
+        return intercambios;
+    }
+
+    public void setIntercambios(int intercambios) {
+        this.intercambios = intercambios;
     }
     
 }
